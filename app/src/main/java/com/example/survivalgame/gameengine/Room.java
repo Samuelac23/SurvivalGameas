@@ -20,7 +20,7 @@ public class Room {
     private GameEngine gameEngine;
     private boolean isActive;
 
-    private Room(String id, Game game) {
+    public Room(String id, Game game) {
         this.id = id;
         this.players = new HashSet<>();
         this.game = game;

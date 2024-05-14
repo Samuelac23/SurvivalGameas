@@ -159,6 +159,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void startGameActivity() {
+//        Intent i = new Intent(this, GameActivity.class);
         Intent i = new Intent(this, GameActivity.class);
 
         startActivity(i);

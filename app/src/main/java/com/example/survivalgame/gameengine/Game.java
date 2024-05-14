@@ -26,6 +26,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+
+//        Actua como si fueses un experto en servidores usando webSockets para videojuegos real-time.
+//
+//        Estoy desarrollando un videojuego realtime en el que se conectan 2 jugadores a una partida y deben sobrevivir
+//        juntos a enemigos que van apareciendo usando proyectiles, tengo implementada la logica de los webSockets,
+//        pero quiero hacer que se conecten los 2 jugadores a una misma sala, osea, que cuando un jugador inicia sesion
+//        le da la opcion de crear una nueva sala o conectarse a una ya existente con 1 solo jugador en ella, y que el
+//        juego no inicie hasta que haya 2 jugadores en esa sala, me podrías ayudar a hacer esta actividad intermedia?
+//
+//        necesito el codigo xml y los cambios que debo hacer, te paso todos mis archivos .java para poder hacer los cambios
+//        Debes hacer que la LoginActivity lanze la nueva actividad que me tienes que proporcionar en vez de lanzar el
+//        juego, también deberás crear o modificar algún archivo .java para crear esas salas en la nueva actividad y que se
+//        puedan conectar los jugadores a las salas ya creadas, cuando un jugador cree una sala, al resto de jugadores le
+//        debe aparecer esa nueva sala creada en un listView con todas las salzas creadas con 1 solo jugador, las salas en las
+//        que se conecte 1 segundo jugador desaparecerán de este lisView
+
+
+
+//        Antes de hacer una actividad, hacer que solo exista 1 sala y solo puedan jugar 2 jugadores a la vez, para probar
+//        el multijugador
 /**
  * The Game class will manage all objects in the game, and will be responsible
  * for updating all states and rendering all objects to the screen.
@@ -58,7 +78,6 @@ public class Game extends SurfaceView implements SurfaceHolder.Callback {
         super(context);
 
 
-
         // Get screen sizes on runtime
         screenHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
         screenWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -81,6 +100,7 @@ public class Game extends SurfaceView implements SurfaceHolder.Callback {
         crosshair = new Crosshair(getContext(), player, aimJoystick, 2 * 500, 600);
 
         this.webSocketServer = new WebSocketServer(this, context, playerJoystick);
+        this.gameEngine = new GameEngine(context);
 
         setFocusable(true);
     }
@@ -236,95 +256,90 @@ public class Game extends SurfaceView implements SurfaceHolder.Callback {
         canvas.drawText(getContext().getString(R.string.canvas_text_fps, avgFPS), 100, 200, paint);
     }
 
-//    public void update() {
-//
-////        Map<String, Object> gameState = new HashMap<>();
-////        gameState.put("players", players);
-////        gameState.put("enemies", enemies);
-////        gameState.put("bullets", bullets);
-////        gameState.put("gameTime", gameTime);
-////
-////        Room room = webSocketServer.getRoomForPlayer(player);
-////        room.updateGameState(gameState);
-//
-//        for (Player player : players) {
-//            player.update(gameTime);
-//        }
-//
-//        for (Enemy enemy : enemies) {
-//            enemy.update(gameTime);
-//        }
-//
-//        for (Bullet bullet : bullets) {
-//            bullet.update(gameTime);
-//        }
-//        // Update state of each object in the game
-//        playerJoystick.update();
-//        aimJoystick.update();
-//
-//        player.update();
-//        crosshair.update();
-//
-//        // Enemies are created dynamically here
-//        if (Enemy.readyToSpawn()) {
-//            enemyList.add(new Enemy(getContext(), player));
-//        }
-//
-//        // Update state of each enemy
-//        for (Enemy enemy : enemyList) {
-//            enemy.update();
-//        }
-//
-//        // Create bullet if ready
-//        if (bulletReady) {
-//            bulletList.add(new Bullet(getContext(), player, bulletAimDirectionX, bulletAimDirectionY));
-//            bulletReady = false;
-//        }
-//
-//        // Update state of each bullet
-//        for (Bullet bullet : bulletList) {
-//            bullet.update();
-//        }
-//
-//        // Remove the current enemy if it is colliding with the player or a bullet
-//        // by iterating through all enemies and bullets
-//        enemyList.removeIf(enemy -> Circle.isColliding(enemy, player));
-//
-//        Iterator<Enemy> enemyIterator = enemyList.iterator();
-//        while (enemyIterator.hasNext()) {
-//            Circle enemy = enemyIterator.next();
-//
-//            if (Circle.isColliding(enemy, player)) {
-//                enemyIterator.remove();
-//
-//                // Skip bullets collision detection with current enemy since it collided with the player
-//                continue;
-//            }
-//
-//            Iterator<Bullet> bulletIterator = bulletList.iterator();
-//            while (bulletIterator.hasNext()) {
-//                Circle bullet = bulletIterator.next();
-//
-//                // Remove current bullet if it collides with an enemy
-//                if (Circle.isColliding(bullet, enemy)) {
-//                    bulletIterator.remove();
-//                    enemyIterator.remove();
-//
-////                     Stop checking collision of current enemy with the rest of the bullets since it collided with curent bullet
-//                    break;
-//                }
-//            }
-//        }
-//    }
-    //Hola
-
     public void update() {
-        // Obten el estado de la sala actual para este jugador
+
+//        Map<String, Object> gameState = new HashMap<>();
+//        gameState.put("players", players);
+//        gameState.put("enemies", enemies);
+//        gameState.put("bullets", bullets);
+//        gameState.put("gameTime", gameTime);
+//
+//        Room room = webSocketServer.getRoomForPlayer(player);
+//        room.updateGameState(gameState);
+
+        for (Player player : players) {
+            player.update(gameTime);
+        }
+
+        for (Enemy enemy : enemies) {
+            enemy.update(gameTime);
+        }
+
+        for (Bullet bullet : bullets) {
+            bullet.update(gameTime);
+        }
+        // Update state of each object in the game
+        playerJoystick.update();
+        aimJoystick.update();
+
+        player.update();
+        crosshair.update();
+
+        // Enemies are created dynamically here
+        if (Enemy.readyToSpawn()) {
+            enemyList.add(new Enemy(getContext(), player));
+        }
+
+        // Update state of each enemy
+        for (Enemy enemy : enemyList) {
+            enemy.update();
+        }
+
+        // Create bullet if ready
+        if (bulletReady) {
+            bulletList.add(new Bullet(getContext(), player, bulletAimDirectionX, bulletAimDirectionY));
+            bulletReady = false;
+        }
+
+        // Update state of each bullet
+        for (Bullet bullet : bulletList) {
+            bullet.update();
+        }
+
+        // Remove the current enemy if it is colliding with the player or a bullet
+        // by iterating through all enemies and bullets
+        enemyList.removeIf(enemy -> Circle.isColliding(enemy, player));
+
+        Iterator<Enemy> enemyIterator = enemyList.iterator();
+        while (enemyIterator.hasNext()) {
+            Circle enemy = enemyIterator.next();
+
+            if (Circle.isColliding(enemy, player)) {
+                enemyIterator.remove();
+
+                // Skip bullets collision detection with current enemy since it collided with the player
+                continue;
+            }
+
+            Iterator<Bullet> bulletIterator = bulletList.iterator();
+            while (bulletIterator.hasNext()) {
+                Circle bullet = bulletIterator.next();
+
+                // Remove current bullet if it collides with an enemy
+                if (Circle.isColliding(bullet, enemy)) {
+                    bulletIterator.remove();
+                    enemyIterator.remove();
+
+//                     Stop checking collision of current enemy with the rest of the bullets since it collided with curent bullet
+                    break;
+                }
+            }
+        }
         Room room = webSocketServer.getRoomForPlayer(player);
         if (room != null) {
             Map<String, Object> gameState = room.getGameState();
 
-            // Actualiza el estado del juego en el GameEngineasdsdas
+            // Actualiza el estado del juego en el GameEngine
             gameEngine.updateGameState(gameState);
 
 
@@ -361,6 +376,93 @@ public class Game extends SurfaceView implements SurfaceHolder.Callback {
             System.err.println("Room is null for player: " + player.toString());
         }
     }
+//    public void update() {
+//        // Obten el estado de la sala actual para este jugador
+//        Room room = webSocketServer.getRoomForPlayer(player);
+//        if (room != null) {
+//            Map<String, Object> gameState = room.getGameState();
+//
+//            // Actualiza el estado del juego en el GameEngine
+//            gameEngine.updateGameState(gameState);
+//
+//
+//            // Actualiza los objetos del juego (jugadores, enemigos, balas, etc.)
+//            gameEngine.updateGameObjects(gameTime);
+//
+//            // Actualiza la posición y estado del jugador local
+//            player.update(gameTime);
+//            crosshair.update();
+//
+//            // Crea nuevos enemigos y balas si es necesario
+//            if (Enemy.readyToSpawn()) {
+//                enemyList.add(new Enemy(getContext(), player));
+//            }
+//
+//            if (bulletReady) {
+//                bulletList.add(new Bullet(getContext(), player, bulletAimDirectionX, bulletAimDirectionY));
+//                bulletReady = false;
+//            }
+//
+//            // Actualiza el estado de los enemigos y balas
+//            for (Enemy enemy : enemyList) {
+//                enemy.update();
+//            }
+//
+//            for (Bullet bullet : bulletList) {
+//                bullet.update();
+//            }
+//
+//            // Maneja las colisiones
+//            gameEngine.handleCollisions();
+//        } else {
+//            // Handle the case where the room is null
+//            System.err.println("Room is null for player: " + player.toString());
+//        }
+//    }
+//    public void update() {
+//        // Obtén el estado de la sala actual para este jugador
+//        Room room = webSocketServer.getRoomForPlayer(player);
+//        if (room != null) {
+//            Map<String, Object> gameState = room.getGameState();
+//
+//            // Actualiza el estado del juego en el GameEngine
+//            gameEngine.updateGameState(gameState);
+//
+//            // Actualiza los objetos del juego (jugadores, enemigos, balas, etc.)
+//            gameEngine.updateGameObjects(gameTime);
+//
+//            // Actualiza la posición y estado del jugador local
+//            player.update(gameTime);
+//            crosshair.update();
+//
+//            // Crea nuevos enemigos y balas si es necesario
+//            if (Enemy.readyToSpawn()) {
+//                enemyList.add(new Enemy(getContext(), player));
+//            }
+//
+//            if (bulletReady) {
+//                bulletList.add(new Bullet(getContext(), player, bulletAimDirectionX, bulletAimDirectionY));
+//                bulletReady = false;
+//            }
+//
+//            // Actualiza el estado de los enemigos y balas
+//            for (Enemy enemy : enemyList) {
+//                enemy.update();
+//            }
+//
+//            for (Bullet bullet : bulletList) {
+//                bullet.update();
+//            }
+//
+//            // Maneja las colisiones
+//            gameEngine.handleCollisions();
+//        } else {
+//            // Handle the case where the room is null
+//            System.err.println("Room is null for player: " + player.toString());
+//        }
+//    }
+
+
 
 
     public void updateGameState(Map<String, Object> gameState) {
@@ -417,5 +519,4 @@ public class Game extends SurfaceView implements SurfaceHolder.Callback {
     public void removePlayer(Player player) {
         players.remove(player);
     }
-
 }
